@@ -1,6 +1,6 @@
 <?php
 
-if ( !defined( 'WP_CLI' ) ) return;
+if ( !defined( 'WP_CLI' ) || !WP_CLI ) return;
 
 class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 
