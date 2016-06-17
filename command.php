@@ -48,8 +48,6 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 			)
 		) );
 
-		WP_CLI::log( print_r( $api, false ) );
-
 		// only return slug?
 		if ( $slug ) {
 			foreach( $api->plugins as $plugin ) {
