@@ -25,13 +25,17 @@ When batch-downloading in this manner, if you want to exclude certain plugins fr
 ## Examples
 
 List all of my favorite plugins:
+
 `wp plugin favorites seventhsteel`
 
 Find out more information about those plugins:
+
 `wp plugin favorites seventhsteel --verbose`
 
 Download and activate all of those plugins:
+
 `wp plugin favorites seventhsteel --slug | xargs wp plugin install --activate`
 
 Download all of those plugins except for Display Widgets and Debug Bar:
+
 `wp plugin favorites matt --slug | grep -vwE "(display-widgets|debug-bar)" | xargs wp plugin install --activate`
