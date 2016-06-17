@@ -1,0 +1,17 @@
+{
+	"name": "mikedance/wp-cli-favorite-plugins",
+	"description": "WP-CLI command to grab favorited plugins from any wordpress.org account.",
+	"homepage": "https://github.com/mikedance/wp-cli-favorite-plugins",
+	"authors":[
+		{
+			"name":"Michael Dance"
+		}
+	],
+	"license": "GPLv2",
+	"require": {
+		"php": ">=5.4"
+	},
+	"autoload": {
+		"files": [ "command.php" ]
+	}
+}
