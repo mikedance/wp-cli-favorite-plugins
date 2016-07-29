@@ -13,5 +13,8 @@
 	},
 	"autoload": {
 		"files": [ "command.php" ]
+	},
+	"require-dev": {
+		"behat/behat": "~2.5"
 	}
 }
