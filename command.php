@@ -13,7 +13,7 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 	 * : The username of the wordpress.org account whose favorite plugins you are listing.
 	 *
 	 * [--verbose]
-	 * : Display much more information about each plugin. By default only the plugin slug will be listed.
+	 * : Display much more information about each plugin.
 	 *
 	 * ## EXAMPLES
 	 *
