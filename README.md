@@ -1,41 +1,52 @@
 # wp-cli-favorite-plugins
 
-A WP-CLI extension to list favorited plugins from a WordPress.org user account. This can be paired with existing WP-CLI commands to batch download and activate these plugins in bulk, essentially allowing you to build your own plugin install profiles.
+A WP-CLI extension to list favorited plugins from a WordPress.org user account. This can be paired with existing commands to batch download and activate these plugins in bulk, essentially allowing you to build your own WordPress plugin install profiles.
 
 ## Usage
 
-`wp plugin favorites <user> [--slug] [--verbose]`
+`wp plugin favorites <user> [--verbose]`
 
-By default, this will display a human-readable list of any user's favorite plugins, including information about when the plugin was last updated, its active installs, and its star rating.
+This will display a list of the given user's favorite plugins. By default, only the plugin slugs will be returned.
+
+Combine this with other WP-CLI commands using `xargs`. For example, `wp plugin favorites <user> | xargs wp plugin install --activate` will download, install, and activate all of the given user's plugins.
 
 ## Options
 
-`<user>` - The username of the WordPress.org account. This is required.
+`<user>`
 
-`--slug` - Add this flag to only return plugin slugs. This is useful when combined with other commands (see Advanced section below).
+The username of the WordPress.org account. Required.
 
-`--verbose` - Add this flag to return additional information about the plugins: their author, current version, WordPress version requirement, WordPress version tested up to, and short description.
+`--verbose`
+
+Add this flag to return additional information about each plugin:
+
+* Name
+* Author
+* Last updated date and current version
+* Star rating (out of 5) and the amount of ratings given
+* Approximate active installs
+* WordPress version required and version tested up to
 
 ## Advanced
 
-You can combine this command with other WP-CLI plugin commands with the help of the `--slug` flag. For example, `wp plugin favorites <user> --slug | xargs wp plugin install` will automatically install all of the plugins in the given user's favorites list. Likewise, you can add the `--activate` flag to `wp plugin install` to activate them all as well.
+If you want to exclude certain plugins from being returned, you can include a `grep` command. For example, `wp plugin favorites <user> | grep -vwE "(hello-dolly|akismet)"` will exclude Hello Dolly and Akismet.
 
-When batch-downloading in this manner, if you want to exclude certain plugins from the list, you can include a `grep` command. `wp plugin favorites <user> --slug | grep -vwE "(hello-dolly|akismet)" | xargs wp plugin install --activate` will download and activate all of the given user's favorite plugins except for Hello Dolly and Akismet.
+You can then chain `wp plugin install` to that. For example, `wp plugin favorites <user> | grep -vwE "(hello-dolly|akismet)" | xargs wp plugin install` would exclude those plugins from being installed.
 
 ## Examples
 
-List all of my favorite plugins:
+List all of Matt Mullenweg's favorite plugins:
 
-`wp plugin favorites seventhsteel`
+`wp plugin favorites matt`
 
 Find out more information about those plugins:
 
-`wp plugin favorites seventhsteel --verbose`
+`wp plugin favorites matt --verbose`
 
 Download and activate all of those plugins:
 
-`wp plugin favorites seventhsteel --slug | xargs wp plugin install --activate`
+`wp plugin favorites matt | xargs wp plugin install --activate`
 
-Download all of those plugins except for Display Widgets and Debug Bar:
+Download all of those plugins except for BBPress and HyperDB:
 
-`wp plugin favorites matt --slug | grep -vwE "(display-widgets|debug-bar)" | xargs wp plugin install --activate`
+`wp plugin favorites matt | grep -vwE "(bbpress|hyperdb)" | xargs wp plugin install --activate`

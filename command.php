@@ -12,27 +12,23 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 	 * <user>
 	 * : The username of the wordpress.org account whose favorite plugins you are listing.
 	 *
-	 * [--slug]
-	 * : Only return plugin slugs. Can be combined with `wp plugin install` (see examples).
-	 *
 	 * [--verbose]
-	 * : Display more information about the plugins.
+	 * : Display much more information about each plugin.
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp plugin favorites matt
 	 *     wp plugin favorites matt --verbose
-	 *     wp plugin favorites matt --slug | xargs wp plugin install --activate
-	 *     wp plugin favorites matt --slug | grep -vwE "(hello-dolly|bbpress)" | xargs wp plugin install --activate
+	 *     wp plugin favorites matt | xargs wp plugin install --activate
+	 *     wp plugin favorites matt | grep -vwE "(hello-dolly|bbpress)" | xargs wp plugin install --activate
 	 *
-	 * @synopsis <user> [--slug] [--verbose]
+	 * @synopsis <user> [--verbose]
 	 */
 	public function __invoke( $args, $assoc_args ) {
 
 		// prepare variables
 		list( $user ) = $args;
 		extract( $assoc_args = wp_parse_args( $assoc_args, array(
-			'slug'    => false,
 			'verbose' => false
 		) ) );
 
@@ -48,71 +44,105 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 			)
 		) );
 
-		// only return slug?
-		if ( $slug ) {
-			foreach( $api->plugins as $plugin ) {
-				WP_CLI::log( $plugin->slug );
-			}
-			return;
-		}
-
-		// get table columns
-		$props = array(
-			'name',
-			'last_updated',
-			'rating',
-			'num_ratings',
-			'active_installs'
-		);
-		if ( $verbose ) {
-			$props = array_merge( $props, array(
-				'author',
-				'version',
-				'requires',
-				'tested',
-				'short_description'
-			) );
-		}
-
-		// pull object properties into an array
-		$plugins = array();
-		foreach( $api->plugins as $plugin ) {
-			$args = array();
-			foreach( $props as $prop ) {
-				$args[$prop] = '';
-
-				if ( isset( $plugin->{$prop} ) ) {
-					$args[$prop] = $plugin->{$prop};
-
-					// clean up some fields for output
-					switch( $prop ) {
-						case 'rating' :
-							$args[$prop] = ( ( (int) $args['rating'] / 100 ) * 5 ) . '/5';
-							break;
-						case 'author' :
-							$args[$prop] = strip_tags( $args['author'] );
-							break;
-						case 'last_updated' :
-							$args[$prop] = date( 'Y-m-d', strtotime( $args['last_updated'] ) );
-							break;
-						case 'active_installs' :
-							$args[$prop] = number_format( $args['active_installs'] );
-							break;
-					}
-				}
-			}
-
-			$plugins[$plugin->slug] = $args;
-		}
+		$plugins = isset( $api->plugins ) ? $api->plugins : false;
 
 		if ( !$plugins ) {
 			WP_CLI::log( 'No favorite plugins found.' );
 			return;
 		}
 
+		if ( $verbose ) {
+			$this->verbose( $plugins );
+			return;
+		}
+
+		foreach( $plugins as $plugin ) {
+			WP_CLI::log( $plugin->slug );
+		}
+
+	}
+
+	/**
+	 * Output a favorite plugins list verbosely. Display a table with most of the data available
+	 * from WordPress.org.
+	 *
+	 * @param object $plugins Result of the plugins_api() call.
+	 */
+	private function verbose( $plugins ) {
+
+		$props = array(
+			'name'            => 'Name',
+			'author'          => 'Author',
+			'last_updated'    => 'Updated (Version)',
+			'rating'          => 'Rating (#)',
+			'active_installs' => 'Active Installs',
+			'requires'        => 'Requires/Tested'
+		);
+
+		$rows = array();
+		foreach( $plugins as $plugin ) {
+			$columns = array();
+			foreach( $props as $prop => $label ) {
+
+				$columns[$label] = '';
+
+				$plugin->{$prop} = isset( $plugin->{$prop} ) ? $plugin->{$prop} : '--';
+
+				// get the value
+				$columns[$label] = $plugin->{$prop};
+
+				// some values need to be cleaned up
+				switch( $prop ) {
+
+					// remove html link from author
+					case 'author' :
+						$columns[$label] = strip_tags( $columns[$label] );
+						break;
+
+					// output rating out of 5, and include # of reviews
+					case 'rating' :
+						$rating = number_format( ( (int) $columns[$label] / 100 ) * 5, 1 );
+						$num_ratings = isset( $plugin->num_ratings ) ? $plugin->num_ratings : 0;
+						$columns[$label] = $rating . '/5' . ' (' . $num_ratings . ')';
+						break;
+
+					// format last_updated date and include version
+					case 'last_updated' :
+						$version = isset( $plugin->version ) ? ' (' . $plugin->version . ')' : '';
+						$columns[$label] = date( 'Y-m-d', strtotime( $columns[$label] ) ) . $version;
+						break;
+
+					// add commas to active install count, and right-justify
+					case 'active_installs' :
+						$count = number_format( $columns[$label] );
+
+						// 15 is width of column
+						$extra_space = 15 - strlen( $count );
+						$space = '';
+						for( $i = 0; $i < $extra_space; $i++ ) {
+							$space .= ' ';
+						}
+
+						$columns[$label] = $space . $count;
+						break;
+
+					// include 'tested up to' with requires
+					case 'requires' :
+						if ( !$columns[$label] ) $columns[$label] = '--';
+						$tested = isset( $plugin->tested ) ? $plugin->tested : '--';
+						$columns[$label] .= '/' . $tested;
+						break;
+
+				}
+
+			}
+
+			$rows[$plugin->slug] = $columns;
+		}
+
 		// output as list table
-		$formatter = new \WP_CLI\Formatter( $assoc_args, $props, 'plugin' );
-		$formatter->display_items( $plugins );
+		$formatter = new \WP_CLI\Formatter( $assoc_args, array_values( $props ), 'plugin' );
+		$formatter->display_items( $rows );
 
 	}
 
