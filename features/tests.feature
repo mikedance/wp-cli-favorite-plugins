@@ -22,13 +22,7 @@ Feature: Test the WP Plugin Favorites command.
     When I run `wp plugin favorites johnjamesjacoby --verbose`
     Then STDOUT should contain:
       """
-      Active Installs
-      """
-
-    When I run `wp plugin favorites wordpressdotorg`
-    Then STDOUT should contain:
-      """
-      No favorite plugins found.
+      BuddyPress
       """
 
     When I run `wp plugin favorites notarealuser_ewojrnewokrn`
