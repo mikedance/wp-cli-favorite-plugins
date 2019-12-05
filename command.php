@@ -57,6 +57,7 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 		}
 
 		foreach( $plugins as $plugin ) {
+			$plugin = (object) $plugin;
 			WP_CLI::log( $plugin->slug );
 		}
 
@@ -81,6 +82,7 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 
 		$rows = array();
 		foreach( $plugins as $plugin ) {
+			$plugin = (object) $plugin;
 			$columns = array();
 			foreach( $props as $prop => $label ) {
 
