@@ -25,8 +25,6 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 	 * @synopsis <user> [--verbose]
 	 */
 	public function __invoke( $args, $assoc_args ) {
-
-		// prepare variables
 		list( $user ) = $args;
 		extract( $assoc_args = wp_parse_args( $assoc_args, array(
 			'verbose' => false
@@ -35,14 +33,18 @@ class MD_CLI_Plugin_Favorites extends WP_CLI_Command {
 		// get access to plugins_api
 		require_once( ABSPATH . 'wp-admin/includes/plugin-install.php' );
 
-		// query wordpress.org
-		$api = plugins_api( 'query_plugins', array(
-			'user'   => $user,
-			'fields' => array(
+		$api_args = array(
+			'user' => $user
+		);
+
+		if ( $verbose ) {
+			$api_args['fields'] = array(
 				'last_updated'    => true,
 				'active_installs' => true
-			)
-		) );
+                        );
+		}
+
+		$api = plugins_api( 'query_plugins', $api_args );
 
 		$plugins = isset( $api->plugins ) ? $api->plugins : false;
 
